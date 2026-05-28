@@ -22,7 +22,7 @@ Emit the profile after your closing message:
 
 WATCHLIST RULES — follow these exactly:
 - 5-7 items, ALL directly related to what the user said they care about. If they said fashion, every item must be about fashion, luxury, design, or the creative industries — not unrelated world events.
-- Be specific and searchable: "sustainable fashion industry 2025" not "fashion". "luxury goods market slowdown" not "luxury".
+- Be specific and searchable: "Sustainable Fashion Industry 2025" not "fashion". "Luxury Goods Market Slowdown" not "luxury". Use title case for all watchlist topic names.
 - Any "related topics" you add must stay within the same interest domain the user mentioned. Never add topics from unrelated domains (e.g. do not add politics or macroeconomics for a fashion-interested user unless they specifically asked for it).
 - Match the user's framing: a fashion professional gets industry/trade topics; a fashion enthusiast gets trend/culture topics.`;
 

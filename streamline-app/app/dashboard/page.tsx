@@ -54,52 +54,21 @@ interface ChatMessage {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const CONFIDENCE_CONFIG = {
-  high: {
-    label: 'High Confidence',
-    description: 'Multiple credible sources agree.',
-    icon: '●',
-    card: 'bg-emerald-50 border-emerald-200',
-    text: 'text-emerald-800',
-    sub: 'text-emerald-600',
-    dot: 'text-emerald-500',
-    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  },
-  medium: {
-    label: 'Medium Confidence',
-    description: 'Evidence exists, but interpretation differs.',
-    icon: '◐',
-    card: 'bg-amber-50 border-amber-200',
-    text: 'text-amber-800',
-    sub: 'text-amber-600',
-    dot: 'text-amber-500',
-    badge: 'bg-amber-100 text-amber-700 border-amber-200',
-  },
-  low: {
-    label: 'Low Confidence',
-    description: 'Early reports, limited evidence, or partisan framing.',
-    icon: '○',
-    card: 'bg-red-50 border-red-200',
-    text: 'text-red-800',
-    sub: 'text-red-600',
-    dot: 'text-red-400',
-    badge: 'bg-red-100 text-red-700 border-red-200',
-  },
+  high:   { label: 'High Confidence',   description: 'Multiple credible sources agree.',                      icon: '●' },
+  medium: { label: 'Medium Confidence', description: 'Evidence exists, but interpretation differs.',          icon: '◐' },
+  low:    { label: 'Low Confidence',    description: 'Early reports, limited evidence, or partisan framing.', icon: '○' },
 } as const;
 
 function ConfidenceCard({ level, reason }: { level: 'high' | 'medium' | 'low'; reason?: string }) {
   const cfg = CONFIDENCE_CONFIG[level];
   return (
-    <div className={`rounded-xl border p-4 ${cfg.card}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className={`text-lg leading-none ${cfg.dot}`}>{cfg.icon}</span>
-            <span className={`font-bold text-sm ${cfg.text}`}>{cfg.label}</span>
-          </div>
-          <p className={`text-sm mt-0.5 ${cfg.sub}`}>{cfg.description}</p>
-          {reason && <p className={`text-xs mt-1.5 opacity-70 ${cfg.text}`}>{reason}</p>}
-        </div>
+    <div className="border-t-2 border-ink border-b border-rule bg-paper-warm px-4 py-3.5">
+      <div className="flex items-baseline gap-2.5">
+        <span className="text-base">{cfg.icon}</span>
+        <span className="uppercase text-xs font-bold tracking-widest font-sans text-ink">{cfg.label}</span>
       </div>
+      <p className="font-serif text-sm text-ink-3 mt-1.5 leading-snug">{cfg.description}</p>
+      {reason && <p className="font-serif italic text-sm text-ink-3 mt-1.5 leading-snug">{reason}</p>}
     </div>
   );
 }
@@ -107,34 +76,33 @@ function ConfidenceCard({ level, reason }: { level: 'high' | 'medium' | 'low'; r
 function ConfidenceBadge({ level }: { level: 'high' | 'medium' | 'low' }) {
   const cfg = CONFIDENCE_CONFIG[level];
   return (
-    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${cfg.badge}`}>
-      {level.toUpperCase()} CONFIDENCE
+    <span className="inline-flex items-center gap-1.5 border border-ink px-2 py-1 uppercase text-[10.5px] font-bold tracking-widest font-sans text-ink">
+      {cfg.icon} {level} confidence
     </span>
   );
 }
 
 function ProbabilityBar({ value }: { value: number }) {
   const pct = Math.round(value * 100);
-  const color = pct >= 60 ? 'bg-emerald-500' : pct >= 35 ? 'bg-amber-500' : 'bg-red-400';
   return (
-    <div className="flex items-center gap-2 mt-1">
-      <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-        <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+    <div className="flex items-center gap-2.5 mt-1.5">
+      <div className="flex-1 h-1 bg-rule overflow-hidden">
+        <div className="h-full bg-ink transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-sm font-mono font-semibold text-slate-700 w-9 text-right shrink-0 tabular-nums">{pct}%</span>
+      <span className="font-sans font-bold tabular-nums text-sm text-ink w-10 text-right shrink-0">{pct}%</span>
     </div>
   );
 }
 
 function Spinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const s = { sm: 'w-3 h-3', md: 'w-5 h-5', lg: 'w-8 h-8' };
-  return <span className={`inline-block border-2 border-indigo-400 border-t-transparent rounded-full animate-spin ${s[size]}`} />;
+  return <span className={`inline-block border-2 border-ink border-t-transparent rounded-full animate-spin ${s[size]}`} />;
 }
 
 const importanceConfig = {
-  high: { dot: 'bg-red-400', label: 'High', ring: 'ring-red-100' },
-  medium: { dot: 'bg-amber-400', label: 'Medium', ring: 'ring-amber-100' },
-  low: { dot: 'bg-slate-300', label: 'Low', ring: 'ring-slate-100' },
+  high:   { glyph: '●', label: 'Top Story' },
+  medium: { glyph: '◐', label: 'Also Watching' },
+  low:    { glyph: '○', label: 'In Brief' },
 };
 
 // ─── Topic Cards (home state) ─────────────────────────────────────────────────
@@ -142,25 +110,29 @@ const importanceConfig = {
 function TopicCard({
   item,
   onLoad,
+  rank,
 }: {
   item: WatchlistItem;
   onLoad: (topic: string) => void;
+  rank?: number;
 }) {
-  const cfg = importanceConfig[item.importance];
   return (
     <button
       onClick={() => onLoad(item.topic)}
-      className="group text-left bg-white rounded-xl border border-slate-200 p-5 hover:border-indigo-300 hover:shadow-md transition-all duration-150 ring-0 hover:ring-4 hover:ring-indigo-50"
+      className="group block w-full text-left border-t border-rule py-4 px-2 hover:bg-paper-gray transition-colors"
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot} shrink-0`} />
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{cfg.label} Priority</span>
-      </div>
-      <p className="text-slate-800 font-semibold text-sm leading-snug group-hover:text-indigo-700 transition-colors">
-        {item.topic}
-      </p>
-      <div className="mt-4 flex items-center gap-1 text-indigo-500 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-        Load brief <span>→</span>
+      <div className="flex gap-3.5">
+        {rank != null && (
+          <span className="font-display text-[30px] leading-none text-ink-5 min-w-[28px] shrink-0">{rank}</span>
+        )}
+        <div className="flex-1">
+          <p className="font-serif font-bold text-[18px] text-ink leading-tight group-hover:underline underline-offset-2">
+            {item.topic.replace(/\b\w/g, (c) => c.toUpperCase())}
+          </p>
+          <div className="mt-1.5 text-[10.5px] font-sans font-semibold text-ink-4 uppercase tracking-widest">
+            Read the brief →
+          </div>
+        </div>
       </div>
     </button>
   );
@@ -245,8 +217,8 @@ export default function Dashboard() {
       try {
         localStorage.setItem(cacheKey, JSON.stringify({ brief: data.brief, timestamp: Date.now() }));
       } catch {}
-    } catch (e: any) {
-      setBriefError(e.message || 'Failed to load brief.');
+    } catch (e: unknown) {
+      setBriefError(e instanceof Error ? e.message : 'Failed to load brief.');
     } finally {
       setBriefLoading(false);
     }
@@ -315,7 +287,7 @@ export default function Dashboard() {
 
   if (!profile) {
     return (
-      <div className="flex h-full items-center justify-center bg-slate-50">
+      <div className="flex h-full items-center justify-center bg-paper">
         <Spinner size="lg" />
       </div>
     );
@@ -331,43 +303,45 @@ export default function Dashboard() {
   const showHome = !currentTopic && !briefLoading;
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
-      {/* ── Top Nav ── */}
-      <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-4 shrink-0">
-        {/* Logo */}
-        <button onClick={() => { setCurrentTopic(null); setBrief(null); setBriefError(null); }} className="flex items-center shrink-0">
-          <span className="text-indigo-600 font-bold text-lg tracking-tight">Stream</span>
-          <span className="text-slate-900 font-bold text-lg tracking-tight">Line</span>
+    <div className="flex flex-col h-full bg-paper">
+
+      {/* ── Masthead Nav ── */}
+      <header className="bg-white border-b-2 border-ink px-6 py-2.5 flex items-center gap-4 shrink-0">
+        <button
+          onClick={() => { setCurrentTopic(null); setBrief(null); setBriefError(null); }}
+          className="font-display text-2xl tracking-wide text-ink shrink-0"
+        >
+          StreamLine
         </button>
 
-        <div className="w-px h-5 bg-slate-200" />
+        <span className="border-l border-rule-2 pl-4 text-ink-4 uppercase text-[10px] font-sans font-semibold tracking-widest hidden sm:block">
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </span>
 
-        {/* Topic search */}
-        <form onSubmit={handleTopicSearch} className="flex-1 max-w-lg">
-          <div className="flex gap-2">
+        <form onSubmit={handleTopicSearch} className="ml-auto flex-none w-80 lg:w-96">
+          <div className="flex border border-ink">
             <input
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm placeholder-slate-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50"
+              className="flex-1 bg-white font-sans text-sm text-ink placeholder-ink-5 outline-none px-3 py-2"
               placeholder="Investigate any topic…"
               value={topicSearch}
               onChange={(e) => setTopicSearch(e.target.value)}
             />
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-ink text-white font-sans text-sm font-semibold hover:opacity-80 transition-opacity"
             >
               Brief it
             </button>
           </div>
         </form>
 
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-xs text-slate-400 capitalize bg-slate-100 px-2.5 py-1 rounded-full">
-            {profile.userType}
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="uppercase text-[10px] font-sans font-semibold tracking-widest text-ink-4">
+            {profile.userType} edition
           </span>
-          {profile.name && <span className="text-sm text-slate-600">{profile.name}</span>}
           <button
             onClick={resetOnboarding}
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+            className="uppercase text-[10px] font-sans font-semibold tracking-widest text-ink-5 hover:text-ink transition-colors"
             title="Re-run onboarding"
           >
             Reset
@@ -377,40 +351,40 @@ export default function Dashboard() {
 
       {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden">
-        {/* ── Center ── */}
-        <main className="flex-1 overflow-y-auto">
 
-          {/* Home: topic cards */}
+        {/* ── Center ── */}
+        <main className="flex-1 overflow-y-auto chat-scroll">
+
+          {/* ── Front Page (Home) ── */}
           {showHome && (
-            <div className="p-8 max-w-5xl mx-auto animate-in">
-              <div className="mb-8">
-                <h1 className="text-[26px] font-bold text-slate-900 tracking-tight">
-                  {profile.name ? `Welcome back, ${profile.name}` : 'Your Dashboard'}
-                </h1>
-                <p className="text-slate-500 mt-1 text-sm">
-                  {watchlist.length} topics on your watchlist · Click any to load a brief
-                </p>
+            <div className="p-8 max-w-4xl mx-auto animate-in">
+              {/* Masthead */}
+              <div className="text-center border-b border-ink pb-3 mb-5">
+                <div className="uppercase text-[10px] tracking-widest font-sans font-semibold text-ink-4">
+                  {profile.name ? `Your edition, ${profile.name}` : 'Your edition'} · {watchlist.length} topics on watch
+                </div>
+                <h1 className="font-display text-5xl mt-2">The Brief</h1>
               </div>
 
-              {/* High priority */}
+              {/* High Priority — Top Stories */}
               {watchlist.filter((w) => w.importance === 'high').length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">High Priority</h2>
-                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                <div className="mb-8">
+                  <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-0">Top Stories</div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
                     {watchlist
                       .filter((w) => w.importance === 'high')
-                      .map((item) => (
-                        <TopicCard key={item.topic} item={item} onLoad={loadBrief} />
+                      .map((item, i) => (
+                        <TopicCard key={item.topic} item={item} onLoad={loadBrief} rank={i + 1} />
                       ))}
                   </div>
                 </div>
               )}
 
-              {/* Medium / Low */}
+              {/* Medium / Low — Also Watching */}
               {watchlist.filter((w) => w.importance !== 'high').length > 0 && (
                 <div>
-                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Also Watching</h2>
-                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                  <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-0">Also On Your Watch</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10">
                     {watchlist
                       .filter((w) => w.importance !== 'high')
                       .map((item) => (
@@ -422,26 +396,27 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Loading */}
+          {/* ── Loading ── */}
           {briefLoading && (
             <div className="flex flex-col items-center justify-center h-full gap-4 animate-in">
-              <Spinner size="lg" />
               <div className="text-center">
-                <p className="font-semibold text-slate-700">{currentTopic}</p>
-                <p className="text-slate-400 text-sm mt-1">Searching news · Checking markets · Structuring brief</p>
+                <div className="uppercase text-[10px] font-sans font-semibold tracking-widest text-ink-4 mb-3">Fetching Brief</div>
+                <p className="font-serif font-bold text-2xl text-ink">{currentTopic}</p>
+                <p className="font-serif italic text-sm text-ink-4 mt-1">Searching news · Checking markets · Structuring brief</p>
               </div>
+              <Spinner size="md" />
             </div>
           )}
 
-          {/* Error */}
+          {/* ── Error ── */}
           {briefError && !briefLoading && (
             <div className="flex flex-col items-center justify-center h-full gap-3 animate-in">
-              <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md text-center">
-                <p className="text-red-700 font-medium mb-1">Failed to load brief</p>
-                <p className="text-red-500 text-sm font-mono">{briefError}</p>
+              <div className="border-t-2 border-ink border border-rule bg-paper-warm p-6 max-w-md text-center">
+                <p className="font-sans font-bold uppercase tracking-wider text-sm text-ink mb-1">Failed to load brief</p>
+                <p className="font-mono text-xs text-ink-3 mt-1">{briefError}</p>
                 <button
                   onClick={() => currentTopic && loadBrief(currentTopic)}
-                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-500 transition-colors"
+                  className="mt-4 px-5 py-2 bg-ink text-white font-sans text-sm font-semibold hover:opacity-80 transition-opacity"
                 >
                   Retry
                 </button>
@@ -449,209 +424,203 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Brief */}
+          {/* ── Article / Brief ── */}
           {brief && !briefLoading && (
-            <div className="p-6 max-w-3xl mx-auto animate-in space-y-4">
-              {/* Back + Header */}
-              <div className="flex items-start gap-3">
-                <button
-                  onClick={() => { setCurrentTopic(null); setBrief(null); setBriefError(null); }}
-                  className="mt-1 text-slate-400 hover:text-slate-600 text-sm transition-colors shrink-0"
-                >
-                  ← Back
-                </button>
-                <div className="flex-1">
-                  <h1 className="text-[26px] font-bold text-slate-900 tracking-tight">{brief.topic}</h1>
-                  {brief.keyTakeaway && (
-                    <p className="mt-2 font-serif italic text-indigo-600" style={{ fontSize: '18px', lineHeight: '1.45' }}>&#8220;{brief.keyTakeaway}&#8221;</p>
-                  )}
+            <article className="p-6 pb-16 max-w-2xl mx-auto animate-in">
+
+              {/* Back */}
+              <button
+                onClick={() => { setCurrentTopic(null); setBrief(null); setBriefError(null); }}
+                className="uppercase text-[10.5px] font-bold tracking-widest font-sans text-ink-4 hover:text-ink transition-colors mb-5 block"
+              >
+                ← Front page
+              </button>
+
+              {/* Article header */}
+              <div className="border-b border-ink pb-5 mb-6">
+                <ConfidenceBadge level={brief.confidence} />
+                <h1 className="font-serif font-bold text-[38px] leading-tight text-ink mt-3">{brief.topic}</h1>
+                {brief.keyTakeaway && (
+                  <p className="mt-3 font-serif italic text-xl text-ink leading-snug" style={{ fontFamily: "'Libre Caslon Text', Georgia, serif" }}>
+                    &#8220;{brief.keyTakeaway}&#8221;
+                  </p>
+                )}
+                <div className="mt-3 uppercase text-[10.5px] font-sans font-semibold tracking-widest text-ink-4">
+                  StreamLine Analysis Desk · Updated {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                 </div>
               </div>
 
-              {/* Confidence Card */}
-              <ConfidenceCard level={brief.confidence} reason={brief.confidenceReason} />
+              <div className="space-y-6">
 
-              {/* Event Brief */}
-              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">What Happened</h2>
-                <p className="text-slate-800 leading-relaxed">{brief.eventBrief}</p>
-              </div>
+                {/* Event Brief with drop cap */}
+                <p className="font-serif text-[17px] leading-relaxed text-ink-2">
+                  <span
+                    className="float-left font-display text-[4.5rem] leading-[0.75] pr-2 pt-1 text-ink"
+                    aria-hidden="true"
+                  >
+                    {brief.eventBrief?.[0]}
+                  </span>
+                  {brief.eventBrief?.slice(1)}
+                </p>
 
-              {/* Structured Disagreement */}
-              {disagreement && (
-                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Structured Disagreement</h2>
-                  <div className="flex gap-1 border-b border-slate-100 pb-3 mb-4 flex-wrap">
-                    {(['consensus', 'contested', 'dissenting', 'unknowns'] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors capitalize ${
-                          activeTab === tab
-                            ? 'bg-indigo-600 text-white'
-                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-                  <ul className="space-y-2.5">
-                    {tabContent[activeTab].map((item, i) => (
-                      <li key={i} className="flex gap-2.5 text-sm text-slate-700 leading-relaxed">
-                        <span className="text-indigo-400 shrink-0 mt-0.5">▸</span>
-                        {item}
-                      </li>
-                    ))}
-                    {tabContent[activeTab].length === 0 && (
-                      <p className="text-slate-400 text-sm italic">Nothing notable here.</p>
-                    )}
-                  </ul>
-                </div>
-              )}
+                {/* Confidence fact-box */}
+                <ConfidenceCard level={brief.confidence} reason={brief.confidenceReason} />
 
-              {/* Prediction Markets */}
-              {brief.markets?.length > 0 && (
-                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Prediction Markets</h2>
-                      <p className="text-xs text-slate-400 mt-0.5">What forecasters are pricing in</p>
+                {/* Structured Disagreement */}
+                {disagreement && (
+                  <section>
+                    <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-4">Structured Disagreement</div>
+                    <div className="flex gap-5 mb-4 flex-wrap border-b border-rule pb-3">
+                      {(['consensus', 'contested', 'dissenting', 'unknowns'] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          className={`uppercase text-[11px] font-bold tracking-widest font-sans pb-1.5 border-b-2 transition-colors ${
+                            activeTab === tab
+                              ? 'border-ink text-ink'
+                              : 'border-transparent text-ink-4 hover:text-ink-2'
+                          }`}
+                        >
+                          {tab}
+                        </button>
+                      ))}
                     </div>
-                    <div className="flex gap-2 text-xs text-slate-400">
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />Real $</span>
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-400 inline-block" />Community</span>
-                    </div>
-                  </div>
-                  <div className="space-y-5">
-                    {brief.markets.map((m) => {
-                      const platformStyle =
-                        m.platform === 'Polymarket'
-                          ? 'bg-blue-50 text-blue-600'
-                          : m.platform === 'Manifold'
-                          ? 'bg-violet-50 text-violet-600'
-                          : 'bg-purple-50 text-purple-600';
-                      return (
+                    <ul className="space-y-3">
+                      {tabContent[activeTab].map((item, i) => (
+                        <li key={i} className="flex gap-3 font-serif text-[16px] text-ink-2 leading-relaxed">
+                          <span className="text-ink shrink-0 mt-0.5 font-sans font-bold">▪</span>
+                          {item}
+                        </li>
+                      ))}
+                      {tabContent[activeTab].length === 0 && (
+                        <p className="font-serif italic text-sm text-ink-4">Nothing notable here.</p>
+                      )}
+                    </ul>
+                  </section>
+                )}
+
+                {/* Prediction Markets */}
+                {brief.markets?.length > 0 && (
+                  <section>
+                    <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-4">Prediction Markets</div>
+                    <div className="space-y-4">
+                      {brief.markets.map((m) => (
                         <div key={m.id}>
-                          <div className="flex items-start justify-between gap-3 mb-1">
+                          <div className="flex items-baseline justify-between gap-3 mb-0.5">
                             <a
                               href={m.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-slate-700 hover:text-indigo-600 leading-snug transition-colors"
+                              className="font-serif text-[15px] text-ink-2 hover:text-ink hover:underline underline-offset-2 leading-snug"
                             >
                               {m.question}
                             </a>
-                            <span className={`text-xs shrink-0 font-semibold px-2 py-0.5 rounded-full ${platformStyle}`}>
+                            <span className="uppercase text-[10px] font-sans font-semibold tracking-widest text-ink-4 whitespace-nowrap shrink-0">
                               {m.platform}
                             </span>
                           </div>
                           {m.probability !== null && <ProbabilityBar value={m.probability} />}
                         </div>
-                      );
-                    })}
-                  </div>
-                  <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100">
-                    Manifold uses play-money forecasting. Polymarket uses real-money contracts.
-                  </p>
-                </div>
-              )}
+                      ))}
+                    </div>
+                    <p className="font-serif italic text-xs text-ink-4 mt-4 pt-3 border-t border-rule">
+                      Manifold uses play-money forecasting. Polymarket uses real-money contracts.
+                    </p>
+                  </section>
+                )}
 
-              {/* Possible Outcomes */}
-              {brief.predictions?.length > 0 && (
-                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                  <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Possible Outcomes</h2>
-                  <div className="space-y-4">
-                    {brief.predictions.map((p, i) => (
-                      <div key={i} className="flex gap-4 items-start">
-                        <span className="text-base font-mono font-semibold text-indigo-500 shrink-0 w-12 tabular-nums">{p.probability}</span>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">{p.outcome}</p>
-                          {p.reasoning && <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{p.reasoning}</p>}
+                {/* Possible Outcomes */}
+                {brief.predictions?.length > 0 && (
+                  <section>
+                    <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-0">Possible Outcomes</div>
+                    <div>
+                      {brief.predictions.map((p, i) => (
+                        <div key={i} className={`flex gap-5 items-baseline py-3 ${i > 0 ? 'border-t border-rule' : ''}`}>
+                          <span className="font-sans font-bold text-[18px] text-ink tabular-nums shrink-0 w-14">{p.probability}</span>
+                          <div>
+                            <p className="font-serif font-bold text-[16px] text-ink">{p.outcome}</p>
+                            {p.reasoning && <p className="font-serif text-sm text-ink-3 mt-0.5 leading-snug">{p.reasoning}</p>}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-              {/* Watch For */}
-              {brief.watchlistSignals?.length > 0 && (
-                <div className="bg-amber-50 rounded-xl border border-amber-100 p-5">
-                  <h2 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-3">Watch For</h2>
-                  <ul className="space-y-2">
-                    {brief.watchlistSignals.map((sig, i) => (
-                      <li key={i} className="flex gap-2 text-sm text-amber-900">
-                        <span className="shrink-0 font-bold">→</span>
-                        {sig}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                {/* Watch For */}
+                {brief.watchlistSignals?.length > 0 && (
+                  <section className="border-t-2 border-b-2 border-ink py-4">
+                    <div className="uppercase text-xs font-bold tracking-widest font-sans mb-3">Watch For</div>
+                    <ul className="space-y-2.5">
+                      {brief.watchlistSignals.map((sig, i) => (
+                        <li key={i} className="flex gap-3 font-serif text-[16px] text-ink-2 leading-relaxed">
+                          <span className="font-sans font-bold text-ink shrink-0">→</span>
+                          {sig}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
 
-              {/* Bottom spacer */}
-              <div className="h-6" />
-            </div>
+              </div>
+            </article>
           )}
         </main>
 
         {/* ── Chat Panel ── */}
-        <aside className="w-72 shrink-0 border-l border-slate-200 bg-white flex flex-col">
-          <div className="px-4 py-3 border-b border-slate-100 shrink-0">
-            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Ask / Push Back</p>
-            <p className="text-xs text-slate-400 mt-0.5 truncate">
-              {brief ? `on: ${brief.topic}` : 'Select a topic to get started'}
+        <aside className="w-72 shrink-0 border-l border-ink bg-paper-warm flex flex-col">
+          <div className="px-4 py-3.5 border-b-2 border-ink shrink-0">
+            <div className="uppercase text-xs font-bold tracking-widest font-sans text-ink">Ask &amp; Push Back</div>
+            <p className="text-[11px] font-sans text-ink-4 mt-1 truncate">
+              {brief ? `Re: ${brief.topic}` : 'Open a brief to begin'}
             </p>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 chat-scroll">
+          <div className="flex-1 overflow-y-auto chat-scroll p-3 space-y-3">
             {chatMessages.length === 0 && (
-              <div className="pt-4 px-2 space-y-2">
-                <p className="text-xs text-slate-400 leading-relaxed">
+              <div className="pt-2 space-y-0">
+                <p className="font-serif text-sm text-ink-3 leading-relaxed mb-2">
                   {brief
                     ? 'Challenge any claim, ask for deeper context, or explore what this means for you.'
                     : 'Load a topic brief to start a conversation.'}
                 </p>
                 {brief && (
-                  <div className="space-y-1">
-                    {[
-                      'What am I missing here?',
-                      'Which sources are most reliable?',
-                      'How does this affect me?',
-                    ].map((prompt) => (
-                      <button
-                        key={prompt}
-                        onClick={() => { setChatInput(prompt); chatInputRef.current?.focus(); }}
-                        className="block w-full text-left text-xs text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors"
-                      >
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
+                  ['What am I missing here?', 'Which sources are most reliable?', 'How does this affect me?'].map((prompt) => (
+                    <button
+                      key={prompt}
+                      onClick={() => { setChatInput(prompt); chatInputRef.current?.focus(); }}
+                      className="block w-full text-left font-serif text-sm text-ink-2 hover:text-ink bg-transparent border-0 border-t border-rule py-2.5 hover:underline underline-offset-2 transition-colors"
+                    >
+                      {prompt}
+                    </button>
+                  ))
                 )}
               </div>
             )}
 
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in`}>
-                <div className={`max-w-[90%] rounded-xl px-3 py-2 text-xs leading-relaxed ${
-                  msg.role === 'user'
-                    ? 'bg-indigo-600 text-white rounded-tr-sm'
-                    : 'bg-slate-100 text-slate-800 rounded-tl-sm'
-                }`}>
-                  {msg.content}
-                </div>
+                {msg.role === 'user' ? (
+                  <div className="max-w-[90%] bg-ink text-white font-sans font-medium text-xs px-3 py-2 leading-relaxed">
+                    {msg.content}
+                  </div>
+                ) : (
+                  <div className="max-w-[92%] border-l-2 border-ink pl-3 font-serif text-sm text-ink-2 leading-relaxed">
+                    {msg.content}
+                  </div>
+                )}
               </div>
             ))}
 
             {chatLoading && (
               <div className="flex animate-in">
-                <div className="bg-slate-100 rounded-xl rounded-tl-sm px-3 py-2.5 flex gap-1.5 items-center">
-                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full dot-1" />
-                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full dot-2" />
-                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full dot-3" />
+                <div className="border-l-2 border-ink pl-3 py-1">
+                  <span className="inline-flex gap-1.5 items-center">
+                    <span className="w-1.5 h-1.5 bg-ink-4 rounded-full dot-1" />
+                    <span className="w-1.5 h-1.5 bg-ink-4 rounded-full dot-2" />
+                    <span className="w-1.5 h-1.5 bg-ink-4 rounded-full dot-3" />
+                  </span>
                 </div>
               </div>
             )}
@@ -659,11 +628,11 @@ export default function Dashboard() {
           </div>
 
           {/* Input */}
-          <div className="p-3 border-t border-slate-100 shrink-0">
-            <div className="flex gap-2">
+          <div className="p-3 border-t border-ink shrink-0">
+            <div className="flex border border-ink">
               <input
                 ref={chatInputRef}
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs placeholder-slate-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 min-w-0 disabled:opacity-50"
+                className="flex-1 bg-paper-warm font-sans text-xs text-ink placeholder-ink-5 outline-none px-3 py-2 min-w-0 disabled:opacity-50"
                 placeholder={brief ? 'Ask a follow-up…' : 'Load a brief first'}
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
@@ -673,7 +642,7 @@ export default function Dashboard() {
               <button
                 onClick={sendChat}
                 disabled={!brief || chatLoading || !chatInput.trim()}
-                className="p-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors shrink-0"
+                className="p-2 bg-ink text-white disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-80 transition-opacity shrink-0"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
@@ -682,6 +651,7 @@ export default function Dashboard() {
             </div>
           </div>
         </aside>
+
       </div>
     </div>
   );

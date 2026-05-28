@@ -121,7 +121,7 @@ function ProbabilityBar({ value }: { value: number }) {
       <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
         <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-sm font-bold text-slate-700 w-9 text-right shrink-0">{pct}%</span>
+      <span className="text-sm font-mono font-semibold text-slate-700 w-9 text-right shrink-0 tabular-nums">{pct}%</span>
     </div>
   );
 }
@@ -335,7 +335,7 @@ export default function Dashboard() {
       {/* ── Top Nav ── */}
       <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-4 shrink-0">
         {/* Logo */}
-        <button onClick={() => { setCurrentTopic(null); setBrief(null); setBriefError(null); }} className="flex items-center gap-0.5 shrink-0">
+        <button onClick={() => { setCurrentTopic(null); setBrief(null); setBriefError(null); }} className="flex items-center shrink-0">
           <span className="text-indigo-600 font-bold text-lg tracking-tight">Stream</span>
           <span className="text-slate-900 font-bold text-lg tracking-tight">Line</span>
         </button>
@@ -384,7 +384,7 @@ export default function Dashboard() {
           {showHome && (
             <div className="p-8 max-w-5xl mx-auto animate-in">
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1 className="text-[26px] font-bold text-slate-900 tracking-tight">
                   {profile.name ? `Welcome back, ${profile.name}` : 'Your Dashboard'}
                 </h1>
                 <p className="text-slate-500 mt-1 text-sm">
@@ -461,9 +461,9 @@ export default function Dashboard() {
                   ← Back
                 </button>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-slate-900">{brief.topic}</h1>
+                  <h1 className="text-[26px] font-bold text-slate-900 tracking-tight">{brief.topic}</h1>
                   {brief.keyTakeaway && (
-                    <p className="mt-1.5 text-indigo-600 text-sm font-medium italic">"{brief.keyTakeaway}"</p>
+                    <p className="mt-2 font-serif italic text-indigo-600" style={{ fontSize: '18px', lineHeight: '1.45' }}>&#8220;{brief.keyTakeaway}&#8221;</p>
                   )}
                 </div>
               </div>
@@ -564,7 +564,7 @@ export default function Dashboard() {
                   <div className="space-y-4">
                     {brief.predictions.map((p, i) => (
                       <div key={i} className="flex gap-4 items-start">
-                        <span className="text-base font-bold text-indigo-500 shrink-0 w-12 tabular-nums">{p.probability}</span>
+                        <span className="text-base font-mono font-semibold text-indigo-500 shrink-0 w-12 tabular-nums">{p.probability}</span>
                         <div>
                           <p className="text-sm font-semibold text-slate-800">{p.outcome}</p>
                           {p.reasoning && <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{p.reasoning}</p>}

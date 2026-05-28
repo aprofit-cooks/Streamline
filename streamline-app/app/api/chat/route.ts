@@ -20,7 +20,11 @@ Emit the profile after your closing message:
 {"userType":"professional","name":null,"interests":["topic1","topic2"],"watchlist":[{"topic":"Specific searchable topic name","importance":"high"},{"topic":"Another topic","importance":"medium"}],"goals":["brief goal"],"expertise":{"topic1":"intermediate"}}
 </streamline_profile>
 
-Watchlist: 5-7 items, specific and searchable (e.g. "Federal Reserve interest rates" not "economy"). Add 1-2 related topics they'd benefit from even if not mentioned.`;
+WATCHLIST RULES — follow these exactly:
+- 5-7 items, ALL directly related to what the user said they care about. If they said fashion, every item must be about fashion, luxury, design, or the creative industries — not unrelated world events.
+- Be specific and searchable: "sustainable fashion industry 2025" not "fashion". "luxury goods market slowdown" not "luxury".
+- Any "related topics" you add must stay within the same interest domain the user mentioned. Never add topics from unrelated domains (e.g. do not add politics or macroeconomics for a fashion-interested user unless they specifically asked for it).
+- Match the user's framing: a fashion professional gets industry/trade topics; a fashion enthusiast gets trend/culture topics.`;
 
 const BRIEF_SYSTEM = (profile: any, brief: any) => `You are a StreamLine analyst in conversation with a user who is reading an intelligence brief.
 

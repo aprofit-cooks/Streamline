@@ -84,7 +84,7 @@ export default function OnboardPage() {
     <div className="flex flex-col h-full bg-slate-950 text-white">
       {/* Header */}
       <header className="flex items-center gap-3 px-6 py-4 border-b border-slate-800">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <span className="text-indigo-400 font-bold text-xl tracking-tight">Stream</span>
           <span className="text-white font-bold text-xl tracking-tight">Line</span>
         </div>

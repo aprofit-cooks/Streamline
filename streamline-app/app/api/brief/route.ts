@@ -6,9 +6,13 @@ import { NextRequest } from 'next/server';
 export async function POST(req: NextRequest) {
   const { topic, profile } = await req.json();
 
+  // Derive a domain context from the user's top interest to bias search
+  // toward relevant coverage (e.g. fashion user gets fashion news, not world news)
+  const primaryInterest = profile?.interests?.[0] as string | undefined;
+
   // Fetch news and markets in parallel
   const [articles, markets] = await Promise.all([
-    searchNews(topic, 10),
+    searchNews(topic, 10, primaryInterest),
     searchAllMarkets(topic),
   ]);
 

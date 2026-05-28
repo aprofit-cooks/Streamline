@@ -6,9 +6,14 @@ export interface NewsItem {
   source: string;
 }
 
-export async function searchNews(query: string, maxResults = 8): Promise<NewsItem[]> {
+export async function searchNews(query: string, maxResults = 8, domainContext?: string): Promise<NewsItem[]> {
   try {
-    const encoded = encodeURIComponent(query + ' news');
+    // Append domain context only when the topic doesn't already contain it,
+    // to avoid generic results when interests are niche (e.g. fashion, design).
+    const contextualQuery = domainContext && !query.toLowerCase().includes(domainContext.toLowerCase())
+      ? `${query} ${domainContext}`
+      : query;
+    const encoded = encodeURIComponent(contextualQuery + ' news');
     const url = `https://news.google.com/rss/search?q=${encoded}&hl=en-US&gl=US&ceid=US:en`;
 
     const res = await fetch(url, {

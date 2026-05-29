@@ -246,7 +246,18 @@ export default function Dashboard() {
           if (nl === -1) continue;
           try {
             prefetched = JSON.parse(raw.slice(0, nl));
-            setBrief({ topic, articles: prefetched!.articles, markets: prefetched!.markets } as Brief);
+            setBrief({
+              topic,
+              articles: prefetched!.articles,
+              markets: prefetched!.markets,
+              confidence: 'medium',
+              eventBrief: '',
+              keyTakeaway: '',
+              confidenceReason: '',
+              predictions: [],
+              watchlistSignals: [],
+              structuredDisagreement: { consensus: '', contested: [], dissenting: [], unknowns: [] },
+            });
             setBriefLoading(false);
             setBriefStreaming(true);
           } catch {}
@@ -543,14 +554,20 @@ export default function Dashboard() {
             <div className="space-y-6">
 
               {/* Event Brief with drop cap */}
-              <p className="font-serif text-[17px] leading-relaxed text-ink-2">
-                <span
-                  className="float-left font-display text-[4.5rem] leading-[0.75] pr-2 pt-1 text-ink"
-                  aria-hidden="true"
-                >
-                  {brief.eventBrief?.[0]}
-                </span>
-                {brief.eventBrief?.slice(1)}
+              <p className="font-serif text-[17px] leading-relaxed text-ink-2 min-h-[1.5em]">
+                {brief.eventBrief ? (
+                  <>
+                    <span
+                      className="float-left font-display text-[4.5rem] leading-[0.75] pr-2 pt-1 text-ink"
+                      aria-hidden="true"
+                    >
+                      {brief.eventBrief[0]}
+                    </span>
+                    {brief.eventBrief.slice(1)}
+                  </>
+                ) : briefStreaming ? (
+                  <span className="text-ink-5 italic">Analyzing…</span>
+                ) : null}
               </p>
 
               {/* News Sources */}

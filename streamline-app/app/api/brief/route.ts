@@ -10,10 +10,16 @@ export async function POST(req: NextRequest) {
   // toward relevant coverage (e.g. fashion user gets fashion news, not world news)
   const primaryInterest = profile?.interests?.[0] as string | undefined;
 
-  // Fetch news and markets in parallel
+  // Fetch news and markets in parallel, with a 3s timeout on each so a slow
+  // third-party API never delays the LLM call by more than 3 seconds.
+  const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 3000): Promise<T> => {
+    const timer = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms));
+    return Promise.race([promise, timer]);
+  };
+
   const [articles, markets] = await Promise.all([
-    searchNews(topic, 10, primaryInterest),
-    searchAllMarkets(topic),
+    withTimeout(searchNews(topic, 8, primaryInterest), []),
+    withTimeout(searchAllMarkets(topic), []),
   ]);
 
   const newsContext =
@@ -40,7 +46,10 @@ export async function POST(req: NextRequest) {
     ? `User type: ${profile.userType}. Interests: ${profile.interests?.join(', ')}. Expertise: ${JSON.stringify(profile.expertise || {})}.`
     : 'General user, no profile.';
 
+  const isGoodNews = /good news|positive development|breakthrough/i.test(topic);
+
   const prompt = `You are a StreamLine analyst. Produce a structured intelligence brief on: "${topic}"
+${isGoodNews ? 'NOTE: This is a "good news" brief. Focus on genuine positive developments, breakthroughs, and progress stories. The structured disagreement section can cover debates about impact or scale of these positive developments rather than controversy.' : ''}
 
 USER CONTEXT: ${userContext}
 
@@ -89,7 +98,7 @@ RULES:
   const completion = await openrouter.chat.completions.create({
     model: BRIEF_MODEL,
     messages: [{ role: 'user', content: prompt }],
-    max_tokens: 1800,
+    max_tokens: 1400,
   });
 
   const rawContent = completion.choices[0]?.message?.content || '{}';

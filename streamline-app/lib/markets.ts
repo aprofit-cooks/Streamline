@@ -33,7 +33,9 @@ function isRelevant(text: string, keywords: string[]): boolean {
 export async function searchManifold(query: string): Promise<Market[]> {
   try {
     const url = `https://api.manifold.markets/v0/search-markets?term=${encodeURIComponent(query)}&limit=8&filter=open`;
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const ac = new AbortController();
+    setTimeout(() => ac.abort(), 2500);
+    const res = await fetch(url, { next: { revalidate: 300 }, signal: ac.signal });
     if (!res.ok) return [];
 
     const data: any[] = await res.json();
@@ -63,7 +65,9 @@ export async function searchManifold(query: string): Promise<Market[]> {
 export async function searchPolymarket(query: string): Promise<Market[]> {
   try {
     const url = `https://gamma-api.polymarket.com/markets?search=${encodeURIComponent(query)}&active=true&limit=12`;
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const ac = new AbortController();
+    setTimeout(() => ac.abort(), 2500);
+    const res = await fetch(url, { next: { revalidate: 300 }, signal: ac.signal });
     if (!res.ok) return [];
 
     const data: any[] = await res.json();

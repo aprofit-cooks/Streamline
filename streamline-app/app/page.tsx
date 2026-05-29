@@ -81,14 +81,13 @@ export default function OnboardPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-white">
+    <div className="flex flex-col h-full bg-white text-ink">
       {/* Header */}
-      <header className="flex items-center gap-3 px-6 py-4 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <span className="text-indigo-400 font-bold text-xl tracking-tight">Stream</span>
-          <span className="text-white font-bold text-xl tracking-tight">Line</span>
-        </div>
-        <span className="text-slate-500 text-sm">AI Sensemaking Dashboard</span>
+      <header className="flex items-center gap-4 px-6 py-3.5 border-b-2 border-ink shrink-0">
+        <span className="font-display text-2xl tracking-wide text-ink">StreamLine</span>
+        <span className="border-l border-rule-2 pl-4 font-sans uppercase text-[10.5px] tracking-widest font-semibold text-ink-4">
+          AI Sensemaking Dashboard
+        </span>
       </header>
 
       {/* Chat area */}
@@ -99,39 +98,41 @@ export default function OnboardPage() {
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in`}
           >
             {msg.role === 'assistant' && (
-              <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold mr-2 mt-1 shrink-0">
+              <div className="w-8 h-8 bg-ink text-white font-display text-base flex items-center justify-center shrink-0 mr-2 mt-1">
                 S
               </div>
             )}
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-indigo-600 text-white rounded-tr-sm'
-                  : 'bg-slate-800 text-slate-100 rounded-tl-sm'
-              }`}
-            >
-              {msg.content}
-            </div>
+            {msg.role === 'user' ? (
+              <div className="max-w-[80%] bg-ink text-white font-sans font-medium text-sm px-4 py-3 leading-relaxed">
+                {msg.content}
+              </div>
+            ) : (
+              <div className="border-l-2 border-ink pl-3.5 font-serif text-base text-ink-2 leading-relaxed max-w-[80%]">
+                {msg.content}
+              </div>
+            )}
           </div>
         ))}
 
         {loading && (
           <div className="flex items-center gap-2 animate-in">
-            <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold shrink-0">
+            <div className="w-8 h-8 bg-ink text-white font-display text-base flex items-center justify-center shrink-0">
               S
             </div>
-            <div className="bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3 flex gap-1.5">
-              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full dot-1" />
-              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full dot-2" />
-              <span className="w-1.5 h-1.5 bg-slate-400 rounded-full dot-3" />
+            <div className="border-l-2 border-ink pl-3.5 py-1">
+              <span className="inline-flex gap-1.5 items-center">
+                <span className="w-1.5 h-1.5 bg-ink-4 rounded-full dot-1" />
+                <span className="w-1.5 h-1.5 bg-ink-4 rounded-full dot-2" />
+                <span className="w-1.5 h-1.5 bg-ink-4 rounded-full dot-3" />
+              </span>
             </div>
           </div>
         )}
 
         {transitioning && (
           <div className="flex justify-center py-4 animate-in">
-            <div className="text-slate-400 text-sm flex items-center gap-2">
-              <span className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <div className="text-ink-4 text-xs font-sans uppercase tracking-widest font-semibold flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
               Setting up your dashboard…
             </div>
           </div>
@@ -142,10 +143,10 @@ export default function OnboardPage() {
 
       {/* Input */}
       <div className="px-4 pb-6 max-w-2xl mx-auto w-full">
-        <div className="flex gap-2 bg-slate-800 rounded-2xl px-4 py-2 border border-slate-700 focus-within:border-indigo-500 transition-colors">
+        <div className="flex border border-ink">
           <input
             ref={inputRef}
-            className="flex-1 bg-transparent text-white placeholder-slate-500 text-sm outline-none py-2"
+            className="bg-white text-ink font-sans text-sm outline-none px-4 py-3 placeholder-ink-5 flex-1"
             placeholder="Type your answer…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -156,12 +157,12 @@ export default function OnboardPage() {
           <button
             onClick={send}
             disabled={loading || transitioning || !input.trim()}
-            className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
+            className="px-5 py-3 bg-ink text-white text-sm font-sans font-semibold disabled:opacity-30 hover:opacity-80 transition-opacity"
           >
             Send
           </button>
         </div>
-        <p className="text-center text-slate-600 text-xs mt-2">
+        <p className="text-center text-ink-4 text-[10.5px] font-sans font-semibold uppercase tracking-widest mt-2.5">
           Press Enter to send
         </p>
       </div>

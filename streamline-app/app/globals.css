@@ -1,28 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;1,400&family=Libre+Franklin:wght@400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap');
+
 @import "tailwindcss";
 
+@theme {
+  --color-paper: #ffffff;
+  --color-paper-warm: #f7f5f0;
+  --color-paper-gray: #f2f2f0;
+  --color-ink: #121212;
+  --color-ink-2: #2b2b2b;
+  --color-ink-3: #5a5a5a;
+  --color-ink-4: #767676;
+  --color-ink-5: #9a9a9a;
+  --color-rule: #dcdcdc;
+  --color-rule-2: #c2c2c2;
+  --color-link: #326891;
+  --font-display: 'Libre Caslon Display', Georgia, 'Times New Roman', serif;
+  --font-serif: Georgia, 'Times New Roman', 'Libre Caslon Text', serif;
+  --font-sans: 'Libre Franklin', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'Courier Prime', 'Courier New', ui-monospace, monospace;
+}
+
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #ffffff;
+  --foreground: #121212;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ffffff;
+  color: #121212;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
-/* Smooth scroll for chat */
 .chat-scroll { scroll-behavior: smooth; }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #c2c2c2; }
+::-webkit-scrollbar-thumb:hover { background: #767676; }
 
-/* Animations */
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-in { animation: fadeSlideIn 0.25s ease-out forwards; }

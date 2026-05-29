@@ -4,7 +4,7 @@ export interface Market {
   probability: number | null;
   volume?: number;
   url: string;
-  platform: 'Polymarket' | 'Manifold' | 'Kalshi';
+  platform: 'Polymarket' | 'Manifold' | 'Kalshi' | 'Metaculus';
   isRealMoney: boolean;
 }
 
@@ -28,12 +28,18 @@ function isRelevant(text: string, keywords: string[]): boolean {
   return keywords.some((kw) => lower.includes(kw));
 }
 
-// ─── Manifold Markets (primary — free, public, semantically rich) ─────────────
+function abortAfter(ms: number): AbortSignal {
+  const ac = new AbortController();
+  setTimeout(() => ac.abort(), ms);
+  return ac.signal;
+}
+
+// ─── Manifold Markets ─────────────────────────────────────────────────────────
 
 export async function searchManifold(query: string): Promise<Market[]> {
   try {
     const url = `https://api.manifold.markets/v0/search-markets?term=${encodeURIComponent(query)}&limit=8&filter=open`;
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const res = await fetch(url, { next: { revalidate: 300 }, signal: abortAfter(2500) });
     if (!res.ok) return [];
 
     const data: any[] = await res.json();
@@ -43,7 +49,7 @@ export async function searchManifold(query: string): Promise<Market[]> {
       .filter((m) => m.outcomeType === 'BINARY' && m.probability != null)
       .filter((m) => isRelevant(m.question, keywords))
       .sort((a, b) => (b.totalLiquidity || 0) - (a.totalLiquidity || 0))
-      .slice(0, 4)
+      .slice(0, 3)
       .map((m) => ({
         id: m.id,
         question: m.question,
@@ -58,12 +64,12 @@ export async function searchManifold(query: string): Promise<Market[]> {
   }
 }
 
-// ─── Polymarket (real-money markets when available) ───────────────────────────
+// ─── Polymarket (real-money) ──────────────────────────────────────────────────
 
 export async function searchPolymarket(query: string): Promise<Market[]> {
   try {
     const url = `https://gamma-api.polymarket.com/markets?search=${encodeURIComponent(query)}&active=true&limit=12`;
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const res = await fetch(url, { next: { revalidate: 300 }, signal: abortAfter(2500) });
     if (!res.ok) return [];
 
     const data: any[] = await res.json();
@@ -94,19 +100,48 @@ export async function searchPolymarket(query: string): Promise<Market[]> {
   }
 }
 
+// ─── Metaculus (broad topic coverage: tech, science, geopolitics, economy) ────
+
+export async function searchMetaculus(query: string): Promise<Market[]> {
+  try {
+    const url = `https://www.metaculus.com/api2/questions/?search=${encodeURIComponent(query)}&status=open&forecast_type=binary&limit=8&order_by=-activity`;
+    const res = await fetch(url, { next: { revalidate: 300 }, signal: abortAfter(2500) });
+    if (!res.ok) return [];
+
+    const data: { results: any[] } = await res.json();
+    const keywords = extractKeywords(query);
+
+    return (data.results || [])
+      .filter((m) => isRelevant(m.title || '', keywords))
+      .filter((m) => m.community_prediction?.q2 != null)
+      .slice(0, 3)
+      .map((m) => ({
+        id: String(m.id),
+        question: m.title,
+        probability: m.community_prediction.q2,
+        url: `https://www.metaculus.com${m.page_url}`,
+        platform: 'Metaculus' as const,
+        isRealMoney: false,
+      }));
+  } catch {
+    return [];
+  }
+}
+
 // ─── Combined ─────────────────────────────────────────────────────────────────
 
 export async function searchAllMarkets(query: string): Promise<Market[]> {
-  const [manifold, poly] = await Promise.all([
+  const [manifold, poly, metaculus] = await Promise.all([
     searchManifold(query),
     searchPolymarket(query),
+    searchMetaculus(query),
   ]);
 
-  // Dedupe by question similarity, real-money first
+  // Real-money first, then by platform breadth
   const seen = new Set<string>();
   const combined: Market[] = [];
 
-  for (const m of [...poly, ...manifold]) {
+  for (const m of [...poly, ...metaculus, ...manifold]) {
     const key = m.question.toLowerCase().slice(0, 40);
     if (!seen.has(key)) {
       seen.add(key);

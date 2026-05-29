@@ -55,10 +55,12 @@ ${newsContext}
 PREDICTION MARKETS:
 ${marketContext}
 
-Produce a JSON response — raw JSON only, no markdown code blocks, no preamble. Use this exact structure:
+Produce a JSON response — raw JSON only, no markdown code blocks, no preamble. Use this exact structure (follow field order exactly):
 {
   "topic": "Clean, specific topic name",
-  "eventBrief": "2-3 sentences on what happened and why it matters specifically to this user type",
+  "keyTakeaway": "One punchy sentence cutting through the noise — what a smart, busy person actually needs to know",
+  "confidence": "high|medium|low",
+  "confidenceReason": "1 sentence on why: name the source quality issues, agreement level, recency, or data gaps driving this rating",
   "structuredDisagreement": {
     "consensus": "1-2 sentences stating what virtually ALL credible observers agree on — the undisputed factual baseline. Be specific, not vague.",
     "contested": [
@@ -66,21 +68,18 @@ Produce a JSON response — raw JSON only, no markdown code blocks, no preamble.
       "Another contested point with named parties or perspectives"
     ],
     "dissenting": [
-      "A serious, credible minority view that challenges the mainstream consensus — not fringe, but a position held by legitimate experts or stakeholders that is underrepresented in coverage. Explain WHY this view is credible even if you disagree.",
-      "Optional second dissenting view if one exists"
+      "A serious, credible minority view that challenges the mainstream consensus — not fringe, but a position held by legitimate experts or stakeholders that is underrepresented in coverage. Explain WHY this view is credible even if you disagree."
     ],
     "unknowns": [
       "A concrete data gap: something we would need to know to resolve the debate, but don't have yet. Be specific — name the missing data, the unverified claim, or the future event that would settle the question.",
       "Another specific unknown that materially changes the picture depending on how it resolves"
     ]
   },
-  "confidence": "high|medium|low",
-  "confidenceReason": "1 sentence on why: name the source quality issues, agreement level, recency, or data gaps driving this rating",
   "predictions": [
     {"outcome": "A specific, falsifiable outcome — not vague", "probability": "~40%", "reasoning": "1 sentence connecting to evidence or market data"}
   ],
   "watchlistSignals": ["A specific event, data release, or statement that would move the needle — name the trigger", "Second concrete signal", "Third signal"],
-  "keyTakeaway": "One punchy sentence cutting through the noise — what a smart, busy person actually needs to know"
+  "eventBrief": "Exactly 2 sentences: what happened and why it matters to this user type. No more."
 }
 
 RULES:
@@ -104,7 +103,7 @@ RULES:
         const stream = await openrouter.chat.completions.create({
           model: BRIEF_MODEL,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 1400,
+          max_tokens: 1800,
           stream: true,
         });
 

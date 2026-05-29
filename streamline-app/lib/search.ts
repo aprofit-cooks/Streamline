@@ -13,7 +13,7 @@ export async function searchNews(query: string, maxResults = 8, domainContext?: 
     const contextualQuery = domainContext && !query.toLowerCase().includes(domainContext.toLowerCase())
       ? `${query} ${domainContext}`
       : query;
-    const encoded = encodeURIComponent(contextualQuery + ' news');
+    const encoded = encodeURIComponent(contextualQuery + ' when:7d');
     const url = `https://news.google.com/rss/search?q=${encoded}&hl=en-US&gl=US&ceid=US:en`;
 
     const res = await fetch(url, {

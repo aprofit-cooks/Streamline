@@ -25,7 +25,7 @@ interface Market {
   probability: number | null;
   volume?: number;
   url: string;
-  platform: 'Polymarket' | 'Manifold' | 'Kalshi';
+  platform: 'Polymarket' | 'Manifold' | 'Kalshi' | 'Metaculus';
   isRealMoney: boolean;
 }
 
@@ -675,61 +675,53 @@ export default function Dashboard() {
                 </section>
               )}
 
-              {/* Prediction Markets */}
-              <section>
-                <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-4">Prediction Markets</div>
-                {brief.markets?.length > 0 ? (
-                  <>
-                    <div className="space-y-1">
-                      {brief.markets.map((m) => (
-                        <a
-                          key={m.id}
-                          href={m.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-4 py-3.5 px-4 border border-rule hover:border-ink hover:bg-paper-warm transition-colors group block"
-                        >
-                          {m.probability !== null && (
-                            <span className="font-sans font-bold text-[28px] text-ink tabular-nums leading-none shrink-0 w-16 text-right">
-                              {Math.round(m.probability * 100)}%
+              {/* Prediction Markets — only shown when markets exist */}
+              {brief.markets?.length > 0 && (
+                <section>
+                  <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-4">Prediction Markets</div>
+                  <div className="space-y-1">
+                    {brief.markets.map((m) => (
+                      <a
+                        key={m.id}
+                        href={m.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-4 py-3.5 px-4 border border-rule hover:border-ink hover:bg-paper-warm transition-colors group block"
+                      >
+                        {m.probability !== null && (
+                          <span className="font-sans font-bold text-[28px] text-ink tabular-nums leading-none shrink-0 w-16 text-right">
+                            {Math.round(m.probability * 100)}%
+                          </span>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-serif text-[15px] text-ink leading-snug group-hover:underline underline-offset-2">
+                            {m.question}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="uppercase text-[10px] font-sans font-semibold tracking-widest text-ink-4">
+                              {m.platform}
                             </span>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-serif text-[15px] text-ink leading-snug group-hover:underline underline-offset-2">
-                              {m.question}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="uppercase text-[10px] font-sans font-semibold tracking-widest text-ink-4">
-                                {m.platform}
+                            {m.isRealMoney && (
+                              <span className="uppercase text-[9px] font-sans font-semibold tracking-widest text-ink-5 border border-rule px-1">
+                                Real $
                               </span>
-                              {m.isRealMoney && (
-                                <span className="uppercase text-[9px] font-sans font-semibold tracking-widest text-ink-5 border border-rule px-1">
-                                  Real $
-                                </span>
-                              )}
-                            </div>
-                            {m.probability !== null && (
-                              <div className="mt-2 h-0.5 bg-rule overflow-hidden">
-                                <div className="h-full bg-ink transition-all" style={{ width: `${Math.round(m.probability * 100)}%` }} />
-                              </div>
                             )}
                           </div>
-                          <span className="text-ink-4 group-hover:text-ink transition-colors shrink-0 font-sans text-sm">↗</span>
-                        </a>
-                      ))}
-                    </div>
-                    <p className="font-serif italic text-xs text-ink-4 mt-3">
-                      Probabilities represent crowd forecasts. Manifold = play money · Polymarket = real money contracts.
-                    </p>
-                  </>
-                ) : (
-                  <div className="bg-paper-warm border border-rule px-4 py-4">
-                    <p className="font-serif text-sm text-ink-3 leading-relaxed">
-                      No active prediction markets found for this topic. Manifold and Polymarket primarily cover political and financial events — niche or emerging topics may not have markets yet.
-                    </p>
+                          {m.probability !== null && (
+                            <div className="mt-2 h-0.5 bg-rule overflow-hidden">
+                              <div className="h-full bg-ink transition-all" style={{ width: `${Math.round(m.probability * 100)}%` }} />
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-ink-4 group-hover:text-ink transition-colors shrink-0 font-sans text-sm">↗</span>
+                      </a>
+                    ))}
                   </div>
-                )}
-              </section>
+                  <p className="font-serif italic text-xs text-ink-4 mt-3">
+                    Probabilities represent crowd forecasts. Manifold/Metaculus = play money · Polymarket = real money.
+                  </p>
+                </section>
+              )}
 
               {/* Possible Outcomes */}
               {brief.predictions?.length > 0 && (

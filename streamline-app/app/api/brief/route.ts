@@ -55,21 +55,36 @@ Produce a JSON response — raw JSON only, no markdown code blocks, no preamble.
   "topic": "Clean, specific topic name",
   "eventBrief": "2-3 sentences on what happened and why it matters specifically to this user type",
   "structuredDisagreement": {
-    "consensus": "What most credible sources agree on",
-    "contested": ["A specific point different sources frame very differently", "Another genuinely contested claim"],
-    "dissenting": ["A view that meaningfully challenges the mainstream narrative"],
-    "unknowns": ["A key thing we don't yet have reliable data on", "Another important unknown"]
+    "consensus": "1-2 sentences stating what virtually ALL credible observers agree on — the undisputed factual baseline. Be specific, not vague.",
+    "contested": [
+      "Name the specific sides: 'Camp A argues X because Y; Camp B argues X because Z.' Give 2-4 genuinely contested points where credible sources, experts, or stakeholders reach different conclusions from the same evidence. Each item must name who disagrees and why.",
+      "Another contested point with named parties or perspectives"
+    ],
+    "dissenting": [
+      "A serious, credible minority view that challenges the mainstream consensus — not fringe, but a position held by legitimate experts or stakeholders that is underrepresented in coverage. Explain WHY this view is credible even if you disagree.",
+      "Optional second dissenting view if one exists"
+    ],
+    "unknowns": [
+      "A concrete data gap: something we would need to know to resolve the debate, but don't have yet. Be specific — name the missing data, the unverified claim, or the future event that would settle the question.",
+      "Another specific unknown that materially changes the picture depending on how it resolves"
+    ]
   },
   "confidence": "high|medium|low",
-  "confidenceReason": "1 sentence on why: source quality, agreement level, recency, data availability",
+  "confidenceReason": "1 sentence on why: name the source quality issues, agreement level, recency, or data gaps driving this rating",
   "predictions": [
-    {"outcome": "A specific possible outcome", "probability": "~40%", "reasoning": "Why this probability"}
+    {"outcome": "A specific, falsifiable outcome — not vague", "probability": "~40%", "reasoning": "1 sentence connecting to evidence or market data"}
   ],
-  "watchlistSignals": ["Specific event or data point to watch for", "Second signal", "Third signal"],
-  "keyTakeaway": "One punchy sentence cutting through the noise, calibrated to this user's goals"
+  "watchlistSignals": ["A specific event, data release, or statement that would move the needle — name the trigger", "Second concrete signal", "Third signal"],
+  "keyTakeaway": "One punchy sentence cutting through the noise — what a smart, busy person actually needs to know"
 }
 
-Be intellectually honest. Represent real disagreement, not false balance. If news sources are thin, reflect that in the confidence level. The predictions should sync with market data where available.`;
+RULES:
+- Represent REAL disagreement, not false balance. If experts actually agree, say so in consensus and leave contested thin.
+- Each contested item must name who holds which view — "some say" is not acceptable.
+- The dissenting view must be credible and steelman'd, not strawmanned.
+- Unknowns must be concrete — "we don't know X" not "the situation is uncertain."
+- Sync predictions with market data where available. If markets exist, cite the probability.
+- If news is thin, reflect it in confidence and say so explicitly in confidenceReason.`;
 
   const completion = await openrouter.chat.completions.create({
     model: BRIEF_MODEL,

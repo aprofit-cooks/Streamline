@@ -147,6 +147,14 @@ function TopicCard({
   );
 }
 
+// ─── Progressive JSON field extraction ───────────────────────────────────────
+// Pulls individual string fields out of a partial/streaming JSON string.
+
+function extractField(text: string, key: string): string | undefined {
+  const m = text.match(new RegExp(`"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)`));
+  return m ? m[1].replace(/\\"/g, '"').replace(/\\n/g, ' ').replace(/\\t/g, ' ') : undefined;
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -156,6 +164,7 @@ export default function Dashboard() {
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [brief, setBrief] = useState<Brief | null>(null);
   const [briefLoading, setBriefLoading] = useState(false);
+  const [briefStreaming, setBriefStreaming] = useState(false);
   const [briefError, setBriefError] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -191,6 +200,7 @@ export default function Dashboard() {
     setCurrentTopic(topic);
     setBrief(null);
     setBriefError(null);
+    setBriefStreaming(false);
     setChatMessages([]);
 
     // Check localStorage cache first
@@ -213,20 +223,77 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, profile }),
       });
-      if (!res.ok) {
+      if (!res.ok || !res.body) {
         const text = await res.text();
         throw new Error(`${res.status}: ${text.slice(0, 200)}`);
       }
-      const data = await res.json();
-      setBrief(data.brief);
-      // Save to cache
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let raw = '';
+      let prefetched: { articles: NewsItem[]; markets: Market[] } | null = null;
+      let headerParsed = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        raw += decoder.decode(value, { stream: true });
+
+        // First newline-delimited chunk = pre-fetched articles + markets.
+        // Render the article shell immediately — no waiting for the LLM.
+        if (!headerParsed) {
+          const nl = raw.indexOf('\n');
+          if (nl === -1) continue;
+          try {
+            prefetched = JSON.parse(raw.slice(0, nl));
+            setBrief({ topic, articles: prefetched!.articles, markets: prefetched!.markets } as Brief);
+            setBriefLoading(false);
+            setBriefStreaming(true);
+          } catch {}
+          raw = raw.slice(nl + 1);
+          headerParsed = true;
+        }
+
+        // Progressively extract early fields so text appears as tokens arrive.
+        const eventBrief = extractField(raw, 'eventBrief');
+        const keyTakeaway = extractField(raw, 'keyTakeaway');
+        const confidence = extractField(raw, 'confidence') as Brief['confidence'] | undefined;
+        const confidenceReason = extractField(raw, 'confidenceReason');
+        const topicLabel = extractField(raw, 'topic');
+
+        if (eventBrief || keyTakeaway) {
+          setBrief((prev) => ({
+            ...(prev as Brief),
+            ...(topicLabel ? { topic: topicLabel } : {}),
+            ...(eventBrief ? { eventBrief } : {}),
+            ...(keyTakeaway ? { keyTakeaway } : {}),
+            ...(confidence ? { confidence } : {}),
+            ...(confidenceReason ? { confidenceReason } : {}),
+          }));
+        }
+      }
+
+      // Stream complete — do a final parse for the full structured data.
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
       try {
-        localStorage.setItem(cacheKey, JSON.stringify({ brief: data.brief, timestamp: Date.now() }));
-      } catch {}
+        const briefData = JSON.parse(jsonMatch?.[0] || '{}');
+        const final: Brief = {
+          ...briefData,
+          articles: prefetched?.articles || [],
+          markets: prefetched?.markets || [],
+        };
+        setBrief(final);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({ brief: final, timestamp: Date.now() }));
+        } catch {}
+      } catch {
+        // Malformed JSON — keep whatever partial data we have
+      }
     } catch (e: unknown) {
       setBriefError(e instanceof Error ? e.message : 'Failed to load brief.');
     } finally {
       setBriefLoading(false);
+      setBriefStreaming(false);
     }
   };
 
@@ -300,7 +367,7 @@ export default function Dashboard() {
   }
 
   const disagreement = brief?.structuredDisagreement;
-  const showHome = !currentTopic && !briefLoading;
+  const showHome = !currentTopic && !briefLoading && !briefStreaming;
 
   return (
     <div className="flex flex-col h-full bg-paper">
@@ -457,8 +524,19 @@ export default function Dashboard() {
                   &#8220;{brief.keyTakeaway}&#8221;
                 </p>
               )}
-              <div className="mt-3 uppercase text-[10.5px] font-sans font-semibold tracking-widest text-ink-4">
-                StreamLine Analysis Desk · Updated {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+              <div className="mt-3 uppercase text-[10.5px] font-sans font-semibold tracking-widest text-ink-4 flex items-center gap-2">
+                {briefStreaming ? (
+                  <>
+                    <span className="inline-flex gap-1 items-center">
+                      <span className="w-1 h-1 bg-ink-4 rounded-full dot-1" />
+                      <span className="w-1 h-1 bg-ink-4 rounded-full dot-2" />
+                      <span className="w-1 h-1 bg-ink-4 rounded-full dot-3" />
+                    </span>
+                    Generating analysis…
+                  </>
+                ) : (
+                  <>StreamLine Analysis Desk · {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</>
+                )}
               </div>
             </div>
 

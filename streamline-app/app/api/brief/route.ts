@@ -6,12 +6,8 @@ import { NextRequest } from 'next/server';
 export async function POST(req: NextRequest) {
   const { topic, profile } = await req.json();
 
-  // Derive a domain context from the user's top interest to bias search
-  // toward relevant coverage (e.g. fashion user gets fashion news, not world news)
   const primaryInterest = profile?.interests?.[0] as string | undefined;
 
-  // Fetch news and markets in parallel, with a 3s timeout on each so a slow
-  // third-party API never delays the LLM call by more than 3 seconds.
   const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 3000): Promise<T> => {
     const timer = new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms));
     return Promise.race([promise, timer]);
@@ -95,28 +91,34 @@ RULES:
 - Sync predictions with market data where available. If markets exist, cite the probability.
 - If news is thin, reflect it in confidence and say so explicitly in confidenceReason.`;
 
-  const completion = await openrouter.chat.completions.create({
-    model: BRIEF_MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: 1400,
+  const encoder = new TextEncoder();
+
+  const readable = new ReadableStream({
+    async start(controller) {
+      // Phase 1: immediately flush pre-fetched articles + markets so the client
+      // can render the article shell (sources, market rows) before the LLM starts.
+      controller.enqueue(encoder.encode(JSON.stringify({ articles, markets }) + '\n'));
+
+      // Phase 2: stream the LLM completion text
+      try {
+        const stream = await openrouter.chat.completions.create({
+          model: BRIEF_MODEL,
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 1400,
+          stream: true,
+        });
+
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+      } finally {
+        controller.close();
+      }
+    },
   });
 
-  const rawContent = completion.choices[0]?.message?.content || '{}';
-
-  const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-  let briefData: any = {};
-
-  try {
-    briefData = JSON.parse(jsonMatch?.[0] || '{}');
-  } catch {
-    briefData = {
-      topic,
-      eventBrief: rawContent,
-      error: true,
-    };
-  }
-
-  return Response.json({
-    brief: { ...briefData, markets, articles },
+  return new Response(readable, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
   });
 }

@@ -641,12 +641,12 @@ export default function Dashboard() {
                 {chatMessages.length === 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-5">
                     {[
-                      'What am I missing here?',
-                      'Which side is more credible?',
-                      `How does this affect ${profile.userType}s?`,
-                      'Steelman the dissenting view',
-                      'What would change your mind?',
-                      'Give me the bear case',
+                      'Show me the strongest counterargument',
+                      'What evidence is missing?',
+                      `Explain this like I am a voter`,
+                      'What outcome is most likely?',
+                      'Who is right here?',
+                      `What does this mean for a ${profile.userType}?`,
                     ].map((prompt) => (
                       <button
                         key={prompt}

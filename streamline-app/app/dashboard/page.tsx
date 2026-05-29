@@ -29,6 +29,14 @@ interface Market {
   isRealMoney: boolean;
 }
 
+interface NewsItem {
+  title: string;
+  link: string;
+  description: string;
+  pubDate: string;
+  source: string;
+}
+
 interface Brief {
   topic: string;
   eventBrief: string;
@@ -44,6 +52,7 @@ interface Brief {
   watchlistSignals: string[];
   keyTakeaway: string;
   markets: Market[];
+  articles: NewsItem[];
 }
 
 interface ChatMessage {
@@ -465,6 +474,36 @@ export default function Dashboard() {
                 </span>
                 {brief.eventBrief?.slice(1)}
               </p>
+
+              {/* News Sources */}
+              {brief.articles?.length > 0 && (
+                <section>
+                  <div className="uppercase text-xs font-bold tracking-widest font-sans pb-2 border-b-2 border-ink mb-0">
+                    Sources
+                  </div>
+                  <div>
+                    {brief.articles.slice(0, 6).map((a, i) => (
+                      <a
+                        key={i}
+                        href={a.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-baseline gap-3 py-2.5 border-b border-rule hover:bg-paper-warm transition-colors group block px-1"
+                      >
+                        <span className="font-sans font-bold text-[10px] tracking-widest uppercase text-ink-4 shrink-0 w-24 truncate group-hover:text-ink transition-colors">
+                          {a.source || 'Source'}
+                        </span>
+                        <span className="font-serif text-[15px] text-ink leading-snug group-hover:underline underline-offset-2 flex-1">
+                          {a.title}
+                        </span>
+                        <span className="font-sans text-[10px] text-ink-5 shrink-0 whitespace-nowrap hidden sm:block">
+                          {a.pubDate ? new Date(a.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {/* Confidence fact-box */}
               <ConfidenceCard level={brief.confidence} reason={brief.confidenceReason} />

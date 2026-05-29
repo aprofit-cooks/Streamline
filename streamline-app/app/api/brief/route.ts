@@ -108,6 +108,6 @@ RULES:
   }
 
   return Response.json({
-    brief: { ...briefData, markets },
+    brief: { ...briefData, markets, articles },
   });
 }

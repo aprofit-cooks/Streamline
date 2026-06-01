@@ -449,7 +449,7 @@ export default function Dashboard() {
                 <p className="font-serif text-sm text-ink-3 mt-0.5">Stories of progress, breakthroughs, and what&apos;s going right</p>
               </div>
               <button
-                onClick={() => loadBrief('good news positive developments breakthroughs 2025')}
+                onClick={() => loadBrief('good news positive developments breakthroughs 2026')}
                 className="shrink-0 px-5 py-3 bg-ink text-white font-sans font-semibold text-sm hover:opacity-80 transition-opacity whitespace-nowrap"
               >
                 See the Good →

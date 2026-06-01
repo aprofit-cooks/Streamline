@@ -1,5 +1,7 @@
 # StreamLine
 
+https://streamline-app-two.vercel.app
+
 StreamLine is an AI sensemaking dashboard designed to help users understand complex public issues beyond a personalized news feed.
 
 Instead of optimizing only for relevance or engagement, StreamLine organizes information around decision-making. For a given topic, it shows what happened, what is contested, what different perspectives believe, how confident the system is, and what outcomes users should watch next.
